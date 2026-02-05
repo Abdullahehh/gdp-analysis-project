@@ -46,3 +46,29 @@ def line_chart(data,title,x,y,path):
     plt.close()
     print(f" Line chart saved: {path}")
 
+
+
+def bar_chart(data,title,x,y,path):
+    """Make a bar chart"""
+    if not data:
+        print("No data for bar chart!")
+        return
+    
+    plt.figure(figsize=(12,6))
+    labels=list(data.keys())
+    vals=list(data.values())
+
+    plt.bar(labels,vals,color='steelblue',edgecolor='black')
+
+    plt.title(title,fontsize=16,fontweight='bold')
+    plt.xlabel(x,fontsize=12)
+    plt.ylabel(y,fontsize=12)
+    plt.xticks(rotation=45,ha='right')
+    plt.grid(axis='y',alpha=0.3)
+
+    plt.savefig(path,dpi=300,bbox_inches='tight')
+    plt.close()
+    print(f" Bar chart saved: {path}")
+
+
+
