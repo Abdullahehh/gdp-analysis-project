@@ -87,16 +87,16 @@ def scatter_chart(data,title,x,y,path):
 
     plt.scatter(a,b,s=100,alpha=0.6,c='blue',edgecolors='black')
 
-    if len(x)>1:
+    if len(a)>1:
         m ,n=np.polyfit(a,b,1)
         plt.plot(a,m* np.array(a)+n,"r--",linewidth=2,label='Trend')
         plt.legend()
 
-        plt.title(title,fontsize=16,fontweight='bold')
-        plt.xlabel(x,fontsize=12)
-        plt.ylabel(y,fontsize=12)
-        plt.grid(True,alpha=0.3)
+    plt.title(title,fontsize=16,fontweight='bold')
+    plt.xlabel(x,fontsize=12)
+    plt.ylabel(y,fontsize=12)
+    plt.grid(True,alpha=0.3)
 
-        plt.savefig(path,dpi=300,bbox_inches='tight')
-        plt.close()
-        print(f" Scatter chart saved: {path}")
+    plt.savefig(path,dpi=300,bbox_inches='tight')
+    plt.close()
+    print(f" Scatter chart saved: {path}")
