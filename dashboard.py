@@ -60,5 +60,29 @@ def main():
     result=perform_operation(filtered,config['year'],config['operation'])
     display_results(config['continent'],config['year'],config['operation'],result)
 
+    #visualizations generation
+    print_section("GENERATING CHARTS")
+
+    #create folder
+    if not os.path.exists('visualizations'):
+        os.makedirs('visualizations')
+
+    #get data
+    continent_gdp=get_continent_gdp_data(cleaned,config['year'])
+    yearly_gdp=get_continent_yearly_gdp(cleaned,config['continent'])
+
+    #charts creation
+    print()
+    pie_chart(continent_gdp,f"GDP Distribution {config['year']}",'visualizations/continent_pie.png')
+
+    bar_chart(continent_gdp,f"GDP by Continent {config['year']}",'Continent','GDP','visualizations/continent_bar.png')
+
+    line_chart(yearly_gdp,f"GDP Trend - {config['continent']}",'Year','GDP','visualizations/yearly_line.png')
+
+    scatter_chart(yearly_gdp,f"GDP Scatter - {config['continent']}",'Year','GDP','visualizations/yearly_scatter.png')
+
+    print("\n All charts saved in visualizations folder!")
+
+
 if __name__ == "__main__":
     main()   
