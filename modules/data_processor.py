@@ -8,22 +8,30 @@ def save_long_data(long_data, output_file):
         writer.writerows(long_data)
 
 def filter_data(long_data, config):
-    """
-    Filter data based on region, year, and optionally country.
-    Case-insensitive and trims extra spaces for robust matching.
-    """
-    region = config["region"].strip().lower()
+ 
+    region_input = config["region"].strip().lower()
     year = int(config["year"])
     country = config.get("country")
     if country:
         country = country.strip().lower()
     
- 
-    print(f"\nFiltering for: region='{region}', year={year}, country={country}")
+    # Parse multiple regions
+    if '&' in region_input:
+        regions = [r.strip() for r in region_input.split('&')]
+    elif ',' in region_input:
+        regions = [r.strip() for r in region_input.split(',')]
+    else:
+        regions = [region_input]
+    
+    print(f"\nFiltering for: regions={regions}, year={year}", end="")
+    if country:
+        print(f", country={country}")
+    else:
+        print(" (all countries)")
     
     filtered = list(filter(
         lambda x: (
-            x["continent"] and region in x["continent"].strip().lower() and  # Changed to 'in' instead of '=='
+            x["continent"] and x["continent"].strip().lower() in regions and
             x["year"] == year and
             (country is None or (x["country"] and x["country"].strip().lower() == country))
         ),
@@ -34,10 +42,7 @@ def filter_data(long_data, config):
     return filtered
     
 def compute_stat(filtered_data, operation):
-    """
-    Compute sum or average of GDP values safely.
-    Returns 0 if no data is present.
-    """
+ 
     if not filtered_data:
         return 0.0
     
@@ -47,6 +52,8 @@ def compute_stat(filtered_data, operation):
         return 0.0
     
     if operation == "average":
+        if len(values) == 0:
+            return 0.0
         return sum(values) / len(values)
     elif operation == "sum":
         return sum(values)
