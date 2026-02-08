@@ -59,28 +59,38 @@ def main():
         result = compute_stat(filtered, config["operation"])
         display_results(config["region"], config["year"], config["operation"], result)
 
-        # Generate visualizations
+       # Generate visualizations
         print_section("GENERATING CHARTS")
         if not os.path.exists('visualizations'):
             os.makedirs('visualizations')
 
         # Data for charts
-       
+        # Pie/Bar: region-wise GDP for selected year
         region_data = {}
         for row in filter(lambda x: x["year"] == config["year"], long_data):
             key = row["continent"]
             region_data[key] = region_data.get(key, 0) + row["value"]
 
-       
-        trend_data = {}
+        # FIXED: Line/Scatter - handle multiple regions
         config_region_lower = config["region"].strip().lower()
+
+        # Parse multiple regions
+        if '&' in config_region_lower:
+            regions = [r.strip() for r in config_region_lower.split('&')]
+        elif ',' in config_region_lower:
+            regions = [r.strip() for r in config_region_lower.split(',')]
+        else:
+            regions = [config_region_lower]
+
+        # Collect trend data for all specified regions
+        trend_data = {}
         for row in long_data:
-            if row["continent"] and row["continent"].strip().lower() == config_region_lower:
+            if row["continent"] and row["continent"].strip().lower() in regions:
                 trend_data[row["year"]] = trend_data.get(row["year"], 0) + row["value"]
 
         # Add validation before creating charts
         if not region_data:
-            print("Warning: No regional data available for charts")
+            print("⚠️  Warning: No regional data available for charts")
         else:
             pie_chart(region_data, f"GDP Distribution {config['year']}", 
                     'visualizations/continent_pie.png')
@@ -88,14 +98,15 @@ def main():
                     'Region', 'GDP (USD)', 'visualizations/continent_bar.png')
 
         if not trend_data:
-            print(f" Warning: No trend data available for {config['region']}")
+            print(f"⚠️  Warning: No trend data available for {config['region']}")
         else:
-            line_chart(trend_data, f"GDP Trend - {config['region']}", 
+            chart_title = f"GDP Trend - {config['region']}"
+            line_chart(trend_data, chart_title, 
                     'Year', 'GDP (USD)', 'visualizations/yearly_line.png')
-            scatter_chart(trend_data, f"GDP Scatter - {config['region']}", 
+            scatter_chart(trend_data, chart_title, 
                         'Year', 'GDP (USD)', 'visualizations/yearly_scatter.png')
 
-        print("\nAll charts saved in visualizations folder!")
+        print("\n✅ All charts saved in visualizations folder!")
         print("\n"+"="*70)
         print("ANALYSIS COMPLETE!")
         print("="*70+"\n")
