@@ -33,3 +33,6 @@ def transform_data(raw_data):
     ]
     return long_data
 
+def clean_long_data(long_data):
+
+    return [row for row in long_data if row["country"] and row["continent"] and row["year"]]
