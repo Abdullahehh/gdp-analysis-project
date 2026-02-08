@@ -1,42 +1,34 @@
+import csv
 
-def clean_data(df):
- 
-    df = df.copy()
+def save_long_data(long_data, output_file):
+    if not long_data:
+        return
 
-   
-    year_cols = [col for col in df.columns if isinstance(col, int)]
+    with open(output_file, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=long_data[0].keys()
+        )
+        writer.writeheader()
+        writer.writerows(long_data)
 
-    df[year_cols] = df[year_cols].apply(
-        lambda x: pd.to_numeric(x, errors="coerce")
-    )
 
-    df = df.dropna(subset=year_cols, how="all") #agr hm how="any" use kren koi koi aik col b agr missing ho ga to 
-    #  row remove ho jae gi
+def filter_data(long_data, config):
+    return list(filter(
+        lambda x: (x["continent"] == config["region"])
+                  and (x["year"] == int(config["year"]))
+                  and (config["country"] is None or x["country"] == config["country"]),
+        long_data
+    ))
 
-    return df
     
-def processGDP(df, config):
-
-    continent =config["region"]
-    filterregion=df[df["Continent"]==continent]
-    print(filterregion)
-    year=config["year"]
-    yeardata=filterregion[year]
-    print(yeardata)
-
-    operation=config["operation"]
-
-    if operation=="average":
-        result=yeardata.mean()
-
-    elif operation=="sum":
-        result=yeardata.sum()
-
+def compute_stat(filtered_data, operation):
+    values = list(map(lambda x: x["value"], filtered_data))
+    if not values:
+        return 0
+    if operation == "average":
+        return sum(values)/len(values)
+    elif operation == "sum":
+        return sum(values)
     else:
-        result = none
-        print("invalid operation")
-
-    return result
-
-    def reshape_data(df):
-    pass
+        raise ValueError(f"Invalid operation: {operation}")
