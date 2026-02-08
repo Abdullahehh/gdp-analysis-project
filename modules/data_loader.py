@@ -21,7 +21,7 @@ def transform_data(raw_data):
     """
     long_data = [
         {
-            "country": row["Country Name"], #country ka nam le ga
+            "country": row["\ufeffCountry Name"], #country ka nam le ga
             "continent": row["Continent"], #continent get kary ga
             "year": int(year), #saray years get karay ga
             "value": float(row[year]) if row[year] else 0 #us year k gdp ko float me convert karay ga or agr 
@@ -32,3 +32,4 @@ def transform_data(raw_data):
         if year.isdigit()  # or agar year digit ho ga to save kre gi
     ]
     return long_data
+
