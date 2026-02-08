@@ -13,10 +13,22 @@ def save_long_data(long_data, output_file):
         writer.writerows(long_data)
 
 
-def filter_data(long_data,config)
-
+def filter_data(long_data, config):
     return list(filter(
-        lambda x:(x["continent"]==config["region"])
-                and (x["year"]==int(config["year"])
-                and (config["country"] is none or x[country]==config[country]),long_data
+        lambda x: (x["continent"] == config["region"])
+                  and (x["year"] == int(config["year"]))
+                  and (config["country"] is None or x["country"] == config["country"]),
+        long_data
     ))
+
+    
+def compute_stat(filtered_data, operation):
+    values = list(map(lambda x: x["value"], filtered_data))
+    if not values:
+        return 0
+    if operation == "average":
+        return sum(values)/len(values)
+    elif operation == "sum":
+        return sum(values)
+    else:
+        raise ValueError(f"Invalid operation: {operation}")
