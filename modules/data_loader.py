@@ -1,52 +1,43 @@
-import csv    # to read CSV files
-import os   
+import csv
+import os
 
 def load_gdp_data(file_path):
-    """
-    Load GDP data from CSV and return raw rows.
-    """
-   
+    """Load GDP data from CSV and return raw rows."""
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}") #kia file exist krti ha?
+        raise FileNotFoundError(f"File not found: {file_path}")
 
-    # Step 2: Open file and read rows
     try:
-
-        with open(file_path, 'r', encoding='utf-8') as f:
-             reader = csv.DictReader(f)
-             data = list(reader) 
-             # convert CSV into a list of dictionaries
-        if not data
-                        raise ValueError("CSV file is empty!")
-    except Exception as e:
-        print("Error reading CSV file:", e)
-        raise
-
-
-        return data
+        with open(file_path, 'r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            data = list(reader)
         
+        if not data:
+            raise ValueError("CSV file is empty!")
+        
+        return data
+    except Exception as e:
+        raise Exception(f"Error reading CSV file: {e}")
+
 def transform_data(raw_data):
-    """
-    Convert wide format (years as columns) to long format (one row per year)
-    """
+    """Convert wide format (years as columns) to long format (one row per year)."""
     long_data = [
         {
-            "country": row["\ufeffCountry Name"], #country ka nam le ga
-            "continent": row["Continent"], #continent get kary ga
-            "year": int(year), #saray years get karay ga
-            "value": float(row[year]) if row[year] else 0 #us year k gdp ko float me convert karay ga or agr 
-            # gdp empty ha too zero likh do
+            "country": row.get("Country Name") or row.get("\ufeffCountry Name"),
+            "continent": row.get("Continent","Unknown"),
+            "year": int(year),
+            "value": float(row[year]) if row.get(year) and row[year].strip() else 0
         }
-        for row in raw_data  #raw data me se aik aik row nikaalay gi
-        for year in row.keys()  #us rows me se years nikalay gii
-        if year.isdigit()  # or agar year digit ho ga to save kre gi
+        for row in raw_data
+        for year in row.keys()
+        if year.isdigit()
     ]
     return long_data
 
 def clean_long_data(long_data):
-
-        cleaned = [
+    """Remove invalid or missing entries."""
+    cleaned = [
         row for row in long_data
-        if row["country"] and row["continent"] and row["year"] and isinstance(row["value"], (int, float)) and row["value"] >= 0
+        if row["country"] and row["continent"] and isinstance(row["year"], int)
+           and isinstance(row["value"], (int, float)) and row["value"] >= 0
     ]
     return cleaned
