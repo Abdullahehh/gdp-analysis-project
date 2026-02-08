@@ -10,11 +10,21 @@ def load_gdp_data(file_path):
         raise FileNotFoundError(f"File not found: {file_path}") #kia file exist krti ha?
 
     # Step 2: Open file and read rows
-    with open(file_path, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        data = list(reader)  # convert CSV into a list of dictionaries
+    try:
 
-    return data
+        with open(file_path, 'r', encoding='utf-8') as f:
+             reader = csv.DictReader(f)
+             data = list(reader) 
+             # convert CSV into a list of dictionaries
+        if not data
+                        raise ValueError("CSV file is empty!")
+    except Exception as e:
+        print("Error reading CSV file:", e)
+        raise
+
+
+        return data
+        
 def transform_data(raw_data):
     """
     Convert wide format (years as columns) to long format (one row per year)
