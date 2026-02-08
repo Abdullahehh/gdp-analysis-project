@@ -50,7 +50,7 @@ def main():
         long_data = clean_long_data(long_data)
         print(f" Total records after cleaning: {len(long_data)}")
 
-        # Optional: save long format
+        #save long format
         save_long_data(long_data, "gdp_long_format.csv")
         print(" Long format GDP data saved to gdp_long_format.csv")
 
@@ -65,23 +65,37 @@ def main():
             os.makedirs('visualizations')
 
         # Data for charts
-        # Pie/Bar: region-wise GDP for selected year
+       
         region_data = {}
-        for row in filter(lambda x: x["year"]==config["year"], long_data):
+        for row in filter(lambda x: x["year"] == config["year"], long_data):
             key = row["continent"]
             region_data[key] = region_data.get(key, 0) + row["value"]
 
-        # Line/Scatter: GDP trend for selected region
+       
         trend_data = {}
-        for row in filter(lambda x: x["continent"]==config["region"], long_data):
-            trend_data[row["year"]] = trend_data.get(row["year"], 0) + row["value"]
+        config_region_lower = config["region"].strip().lower()
+        for row in long_data:
+            if row["continent"] and row["continent"].strip().lower() == config_region_lower:
+                trend_data[row["year"]] = trend_data.get(row["year"], 0) + row["value"]
 
-        pie_chart(region_data, f"GDP Distribution {config['year']}", 'visualizations/continent_pie.png')
-        bar_chart(region_data, f"GDP by Region {config['year']}", 'Region','GDP','visualizations/continent_bar.png')
-        line_chart(trend_data, f"GDP Trend - {config['region']}", 'Year','GDP','visualizations/yearly_line.png')
-        scatter_chart(trend_data, f"GDP Scatter - {config['region']}", 'Year','GDP','visualizations/yearly_scatter.png')
+        # Add validation before creating charts
+        if not region_data:
+            print("Warning: No regional data available for charts")
+        else:
+            pie_chart(region_data, f"GDP Distribution {config['year']}", 
+                    'visualizations/continent_pie.png')
+            bar_chart(region_data, f"GDP by Region {config['year']}", 
+                    'Region', 'GDP (USD)', 'visualizations/continent_bar.png')
 
-        print("\n✅ All charts saved in visualizations folder!")
+        if not trend_data:
+            print(f" Warning: No trend data available for {config['region']}")
+        else:
+            line_chart(trend_data, f"GDP Trend - {config['region']}", 
+                    'Year', 'GDP (USD)', 'visualizations/yearly_line.png')
+            scatter_chart(trend_data, f"GDP Scatter - {config['region']}", 
+                        'Year', 'GDP (USD)', 'visualizations/yearly_scatter.png')
+
+        print("\nAll charts saved in visualizations folder!")
         print("\n"+"="*70)
         print("ANALYSIS COMPLETE!")
         print("="*70+"\n")
