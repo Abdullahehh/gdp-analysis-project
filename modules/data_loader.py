@@ -45,4 +45,8 @@ def transform_data(raw_data):
 
 def clean_long_data(long_data):
 
-    return [row for row in long_data if row["country"] and row["continent"] and row["year"]]
+        cleaned = [
+        row for row in long_data
+        if row["country"] and row["continent"] and row["year"] and isinstance(row["value"], (int, float)) and row["value"] >= 0
+    ]
+    return cleaned
