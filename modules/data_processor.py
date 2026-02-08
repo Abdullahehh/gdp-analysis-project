@@ -1,20 +1,24 @@
 
 def clean_data(df):
- 
+    """
+    Clean GDP dataset:
+    - Remove rows with missing GDP values
+    - Ensure GDP columns are numeric
+    """
     df = df.copy()
 
-   
+    # Convert all year columns to numeric where possible
     year_cols = [col for col in df.columns if isinstance(col, int)]
 
     df[year_cols] = df[year_cols].apply(
         lambda x: pd.to_numeric(x, errors="coerce")
     )
 
-    df = df.dropna(subset=year_cols, how="all") #agr hm how="any" use kren koi koi aik col b agr missing ho ga to 
-    #  row remove ho jae gi
+    # Drop rows where all GDP values are missing
+    df = df.dropna(subset=year_cols, how="all")
 
     return df
-    
+
 def processGDP(df, config):
 
     continent =config["region"]
