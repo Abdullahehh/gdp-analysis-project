@@ -259,3 +259,30 @@ class TransformationEngine:
                 by_country.items()
             )
         ))
+    
+    #output 8
+
+    def _continent_contribution(self, all_data: List[dict], date_range: list) -> dict:
+        start, end = date_range
+
+       
+        in_range = list(filter(lambda r: start <= r["year"] <= end, all_data))
+
+        if not in_range:
+            return {}
+
+        by_continent = reduce(
+            lambda acc, r: {**acc, r["continent"]: acc.get(r["continent"], 0) + r["value"]},
+            in_range,
+            {}
+        )
+
+        total = reduce(lambda acc, v: acc + v, by_continent.values(), 0)
+
+        if total == 0:
+            return {}
+
+        return dict(map(
+            lambda item: (item[0], round((item[1] / total) * 100, 2)),
+            by_continent.items()
+        ))
