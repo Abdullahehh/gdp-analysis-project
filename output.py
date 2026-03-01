@@ -8,10 +8,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from modules.visualizer import pie_chart, bar_chart, line_chart, scatter_chart
 
 
-# =========================================================
-# CONSOLE WRITER
-# =========================================================
-
 class ConsoleWriter:
     """Displays results in terminal"""
 
@@ -66,12 +62,20 @@ class ConsoleWriter:
             for country, rate in list(results['growth_rate'].items())[:20]:
                 print(f"  {country:30s} {rate:>8.2f}%")
 
-        if 'avg_by_continent' in results and results['avg_by_continent']:
+        if 'continent_gdp' in results and results['continent_gdp']:
             print("\n" + "-" * 80)
-            print("  OUTPUT 4: AVERAGE GDP BY CONTINENT")
+
+            operation = results.get("meta", {}).get("operation", "average")
+
+            if operation == "sum":
+                print("  OUTPUT 4: TOTAL GDP BY CONTINENT")
+            else:
+                print("  OUTPUT 4: AVERAGE GDP BY CONTINENT")
+
             print("-" * 80)
-            for continent, avg_gdp in results['avg_by_continent'].items():
-                print(f"  {continent:30s} ${avg_gdp:>15,.2f}")
+
+            for continent, value in results['continent_gdp'].items():
+                print(f"  {continent:30s} ${value:>15,.2f}")
 
         if 'global_gdp_trend' in results and results['global_gdp_trend']:
             print("\n" + "-" * 80)
@@ -103,10 +107,6 @@ class ConsoleWriter:
             for continent, percentage in results['continent_contribution'].items():
                 print(f"  {continent:30s} {percentage:>6.2f}%")
 
-
-# =========================================================
-# GRAPHICS WRITER
-# =========================================================
 
 class GraphicsChartWriter:
 
@@ -169,11 +169,8 @@ class GraphicsChartWriter:
             )
 
 
-# =========================================================
-# FILE WRITER
-# =========================================================
-
 class FileWriter:
+    """Saves results to CSV or JSON files"""
 
     def __init__(self, output_path: str, format: str = 'csv'):
         self.output_path = output_path
@@ -182,16 +179,32 @@ class FileWriter:
         if self.format not in ['csv', 'json']:
             raise ValueError("Format must be 'csv' or 'json'")
 
-    def write(self, results: Dict[str, Any]) -> None:
+    def write(self, results: Any) -> None:
+        """Write results to file - handles nested dictionary from engine"""
         if not results:
             print("  No data to write")
             return
 
         try:
+            
             if isinstance(results, dict) and 'top_10' in results:
                 records = self._flatten_results(results)
-            else:
+
+            
+            elif isinstance(results, list):
                 records = results
+
+            
+            elif isinstance(results, dict):
+                records = [results]
+
+            else:
+                print("  Unsupported data format")
+                return
+
+            if not records:
+                print("  No records to write")
+                return
 
             if self.format == 'csv':
                 self._write_csv(records)
@@ -203,36 +216,65 @@ class FileWriter:
         except Exception as e:
             print(f"  Error writing file: {str(e)}")
 
+   
+
     def _write_csv(self, records: List[Dict[str, Any]]) -> None:
+        """Safely write CSV with dynamic columns"""
+
+        if not records:
+            return
+
+        
+        all_fields = set()
+        for record in records:
+            if isinstance(record, dict):
+                all_fields.update(record.keys())
+
+        fieldnames = sorted(list(all_fields))
+
         with open(self.output_path, 'w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=records[0].keys())
+            writer = csv.DictWriter(
+                file,
+                fieldnames=fieldnames,
+                extrasaction='ignore'
+            )
             writer.writeheader()
             writer.writerows(records)
 
+    # -----------------------------------------------------
+
     def _write_json(self, records: List[Dict[str, Any]]) -> None:
+        """Write JSON safely"""
         with open(self.output_path, 'w', encoding='utf-8') as file:
             json.dump(records, file, indent=2, ensure_ascii=False)
 
+    # -----------------------------------------------------
+
     def _flatten_results(self, results: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Flatten nested Phase 2 results into list format"""
+
         flattened = []
 
-        if 'top_10' in results:
+        
+        if 'top_10' in results and results['top_10']:
             for item in results['top_10']:
                 flattened.append({
                     'Analysis': 'Top 10',
-                    'Country': item['country'],
-                    'GDP': item['gdp']
+                    'Country': item.get('country'),
+                    'GDP': item.get('gdp')
                 })
 
-        if 'bottom_10' in results:
+       
+        if 'bottom_10' in results and results['bottom_10']:
             for item in results['bottom_10']:
                 flattened.append({
                     'Analysis': 'Bottom 10',
-                    'Country': item['country'],
-                    'GDP': item['gdp']
+                    'Country': item.get('country'),
+                    'GDP': item.get('gdp')
                 })
 
-        if 'growth_rate' in results:
+       
+        if 'growth_rate' in results and results['growth_rate']:
             for country, rate in results['growth_rate'].items():
                 flattened.append({
                     'Analysis': 'Growth Rate',
@@ -240,7 +282,8 @@ class FileWriter:
                     'Growth_Rate_%': rate
                 })
 
-        if 'avg_by_continent' in results:
+       
+        if 'avg_by_continent' in results and results['avg_by_continent']:
             for continent, avg in results['avg_by_continent'].items():
                 flattened.append({
                     'Analysis': 'Average by Continent',
@@ -248,12 +291,42 @@ class FileWriter:
                     'Average_GDP': avg
                 })
 
-        return flattened if flattened else [results]
+        
+        if 'global_gdp_trend' in results and results['global_gdp_trend']:
+            for year, gdp in results['global_gdp_trend'].items():
+                flattened.append({
+                    'Analysis': 'Global Trend',
+                    'Year': year,
+                    'GDP': gdp
+                })
+
+        
+        if 'continent_contribution' in results and results['continent_contribution']:
+            for continent, percentage in results['continent_contribution'].items():
+                flattened.append({
+                    'Analysis': 'Continent Contribution',
+                    'Continent': continent,
+                    'Percentage_%': percentage
+                })
+
+        
+        if 'fastest_growing' in results:
+            flattened.append({
+                'Analysis': 'Fastest Growing Continent',
+                'Value': results['fastest_growing']
+            })
+
+        
+        if 'consistent_decline' in results:
+            for country in results['consistent_decline']:
+                flattened.append({
+                    'Analysis': 'Consistent Decline',
+                    'Country': country
+                })
+
+        return flattened
 
 
-# =========================================================
-# HTML REPORT WRITER
-# =========================================================
 
 class HTMLReportWriter:
 
