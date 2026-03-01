@@ -1,6 +1,6 @@
  {
-     "region": "Europe&Asia",
      "year": 2020,
-     "operation": "sum",
+     "country": "Pakistan",
+     "operation": "average",
      "output": "dashboard"
    }

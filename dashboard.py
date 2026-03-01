@@ -65,13 +65,13 @@ def main():
             os.makedirs('visualizations')
 
         # Data for charts
-        # Pie/Bar: region-wise GDP for selected year
+       
         region_data = {}
         for row in filter(lambda x: x["year"] == config["year"], long_data):
             key = row["continent"]
             region_data[key] = region_data.get(key, 0) + row["value"]
 
-        # FIXED: Line/Scatter - handle multiple regions
+       
         config_region_lower = config["region"].strip().lower()
 
         # Parse multiple regions
@@ -90,7 +90,7 @@ def main():
 
         # Add validation before creating charts
         if not region_data:
-            print("⚠️  Warning: No regional data available for charts")
+            print("Warning: No regional data available for charts")
         else:
             pie_chart(region_data, f"GDP Distribution {config['year']}", 
                     'visualizations/continent_pie.png')
@@ -98,7 +98,7 @@ def main():
                     'Region', 'GDP (USD)', 'visualizations/continent_bar.png')
 
         if not trend_data:
-            print(f"⚠️  Warning: No trend data available for {config['region']}")
+            print(f"Warning: No trend data available for {config['region']}")
         else:
             chart_title = f"GDP Trend - {config['region']}"
             line_chart(trend_data, chart_title, 
@@ -106,7 +106,7 @@ def main():
             scatter_chart(trend_data, chart_title, 
                         'Year', 'GDP (USD)', 'visualizations/yearly_scatter.png')
 
-        print("\n✅ All charts saved in visualizations folder!")
+        print("\nAll charts saved in visualizations folder!")
         print("\n"+"="*70)
         print("ANALYSIS COMPLETE!")
         print("="*70+"\n")
