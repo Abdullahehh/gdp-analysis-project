@@ -226,3 +226,36 @@ class TransformationEngine:
         ))
 
         return max(growth, key=growth.get) if growth else "Unknown"
+
+    #output 7
+
+    
+    def _consistent_decline(self, all_data: List[dict], decline_years: int) -> List[str]:
+
+        by_country = reduce(
+            lambda acc, r: {
+                **acc,
+                r["country"]: {**acc.get(r["country"], {}), r["year"]: r["value"]}
+            },
+            all_data,
+            {}
+        )
+#helper function
+
+        def is_consistently_declining(year_data: dict) -> bool:
+            sorted_years = sorted(year_data.keys(), reverse=True)
+            if len(sorted_years) < decline_years:
+                return False
+            recent = sorted_years[:decline_years]
+            return all(map(
+                lambda i: year_data[recent[i]] < year_data[recent[i + 1]],
+                range(len(recent) - 1)
+            ))
+
+        return list(map(
+            lambda item: item[0],
+            filter(
+                lambda item: is_consistently_declining(item[1]),
+                by_country.items()
+            )
+        ))
