@@ -94,3 +94,11 @@ class TransformationEngine:
 
         print(" All 8 analyses complete.")
         return results
+    
+    #output 1 and 2
+    
+        def _top_n_countries(self, filtered_data: List[dict], n: int, ascending: bool) -> List[dict]:
+            if not filtered_data:
+                return []
+            sorted_data = sorted(filtered_data, key=lambda x: x["value"], reverse=not ascending)
+            return [{"country": r["country"], "gdp": r["value"]} for r in sorted_data[:n]]
