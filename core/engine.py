@@ -1,6 +1,7 @@
 
 from typing import List, Any
 from core.contracts import DataSink
+from functools import reduce
 
 
 from modules.data_loader    import load_gdp_data, transform_data, clean_long_data
@@ -99,51 +100,95 @@ class TransformationEngine:
     def _top_n_countries(self, filtered_data: List[dict], n: int, ascending: bool) -> List[dict]:
         if not filtered_data:
             return []
+        
         sorted_data = sorted(filtered_data, key=lambda x: x["value"], reverse=not ascending)
-        return [{"country": r["country"], "gdp": r["value"]} for r in sorted_data[:n]]
+      
+        return list(map(
+            lambda r: {"country": r["country"], "gdp": r["value"]},
+            sorted_data[:n]
+        ))
     
-    
+     #output 3
+
     def _gdp_growth_rate(self, all_data: List[dict], region: str, date_range: list) -> dict:
         start, end   = date_range
         region_lower = region.strip().lower()
 
-        if '&' in region_lower:
-            regions = [r.strip() for r in region_lower.split('&')]
-        elif ',' in region_lower:
-            regions = [r.strip() for r in region_lower.split(',')]
-        else:
-            regions = [region_lower]
+        regions = (
+            list(map(str.strip, region_lower.split('&'))) if '&' in region_lower else
+            list(map(str.strip, region_lower.split(','))) if ',' in region_lower else
+            [region_lower]
+        )
 
-        region_data = [
-            r for r in all_data
-            if r["continent"].strip().lower() in regions
-            and r["year"] in [start, end]
-        ]
+        region_data = list(filter(
+            lambda r: r["continent"].strip().lower() in regions
+                      and r["year"] in [start, end],
+            all_data
+        ))
 
-        by_country = {}
-        for r in region_data:
-            by_country.setdefault(r["country"], {})[r["year"]] = r["value"]
+        by_country = reduce(
+            lambda acc, r: {
+                **acc,
+                r["country"]: {**acc.get(r["country"], {}), r["year"]: r["value"]}
+            },
+            region_data,
+            {}
+        )
 
-        growth = {}
-        for country, years in by_country.items():
-            if start in years and end in years and years[start] > 0:
-                rate = ((years[end] - years[start]) / years[start]) * 100
-                growth[country] = round(rate, 2)
+        valid = filter(
+            lambda item: start in item[1] and end in item[1] and item[1][start] > 0,
+            by_country.items()
+        )
 
-        return growth
+        return dict(map(
+            lambda item: (
+                item[0],
+                round(((item[1][end] - item[1][start]) / item[1][start]) * 100, 2)
+            ),
+            valid
+        ))
     
+     # output 4
     def _avg_gdp_by_continent(self, all_data: List[dict], date_range: list) -> dict:
         start, end = date_range
-        in_range   = [r for r in all_data if start <= r["year"] <= end]
+
+       
+        in_range = list(filter(lambda r: start <= r["year"] <= end, all_data))
 
         if not in_range:
             return {}
 
-        by_continent = {}
-        for r in in_range:
-            by_continent.setdefault(r["continent"], []).append(r["value"])
+        by_continent = reduce(
+            lambda acc, r: {
+                **acc,
+                r["continent"]: acc.get(r["continent"], []) + [r["value"]]
+            },
+            in_range,
+            {}
+        )
 
-        return {
-            cont: round(sum(vals) / len(vals), 2)
-            for cont, vals in by_continent.items()
-        }
+        return dict(map(
+            lambda item: (item[0], round(sum(item[1]) / len(item[1]), 2)),
+            by_continent.items()
+        ))
+    
+    #output 5
+    
+    def _global_gdp_trend(self, all_data: List[dict], date_range: list) -> dict:
+        start, end = date_range
+
+       
+        in_range = list(filter(lambda r: start <= r["year"] <= end, all_data))
+
+        if not in_range:
+            return {}
+
+       
+        by_year = reduce(
+            lambda acc, r: {**acc, r["year"]: acc.get(r["year"], 0) + r["value"]},
+            in_range,
+            {}
+        )
+
+       
+        return dict(sorted(by_year.items(), key=lambda x: x[0]))
