@@ -61,3 +61,36 @@ class TransformationEngine:
     def load_gdp_data(file_path: str) -> List[dict]:
     #phase 1 se data load kre ga
         return load_gdp_data(file_path)
+
+    #required sari outputs is me print hon gi
+    def _run_all_analyses(self, all_data: List[dict], filtered_data: List[dict]) -> dict:
+        """Runs all 8 required outputs and returns a single results dictionary."""
+        config        = self.config
+        region        = config["region"]
+        year          = int(config["year"])
+        date_range    = config.get("date_range", [2000, 2020])
+        decline_years = config.get("decline_years", 5)
+        operation     = config.get("operation", "sum")
+
+        print("\n Running all 8 analyses...")
+
+        results = {
+            "top_10":                 self._top_n_countries(filtered_data, n=10, ascending=False),
+            "bottom_10":              self._top_n_countries(filtered_data, n=10, ascending=True),
+            "growth_rate":            self._gdp_growth_rate(all_data, region, date_range),
+            "avg_by_continent":       self._avg_gdp_by_continent(all_data, date_range),
+            "global_gdp_trend":       self._global_gdp_trend(all_data, date_range),
+            "fastest_growing":        self._fastest_growing_continent(all_data, date_range),
+            "consistent_decline":     self._consistent_decline(all_data, decline_years),
+            "continent_contribution": self._continent_contribution(all_data, date_range),
+            "meta": {
+                "region":        region,
+                "year":          year,
+                "date_range":    date_range,
+                "decline_years": decline_years,
+                "operation":     operation,
+            }
+        }
+
+        print(" All 8 analyses complete.")
+        return results
