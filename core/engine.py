@@ -56,3 +56,8 @@ class TransformationEngine:
 
         print("\n Sending results to output...")
         self.sink.write(results)
+
+    @staticmethod
+    def load_gdp_data(file_path: str) -> List[dict]:
+    #phase 1 se data load kre ga
+        return load_gdp_data(file_path)
