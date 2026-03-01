@@ -176,7 +176,6 @@ class TransformationEngine:
     
     def _global_gdp_trend(self, all_data: List[dict], date_range: list) -> dict:
         start, end = date_range
-
        
         in_range = list(filter(lambda r: start <= r["year"] <= end, all_data))
 
@@ -192,3 +191,38 @@ class TransformationEngine:
 
        
         return dict(sorted(by_year.items(), key=lambda x: x[0]))
+    
+    #output 6
+
+    def _fastest_growing_continent(self, all_data: List[dict], date_range: list) -> str:
+        start, end = date_range
+
+       
+        boundary_data = list(filter(lambda r: r["year"] in [start, end], all_data))
+
+        by_continent = reduce(
+            lambda acc, r: {
+                **acc,
+                r["continent"]: {
+                    **acc.get(r["continent"], {}),
+                    r["year"]: acc.get(r["continent"], {}).get(r["year"], 0) + r["value"]
+                }
+            },
+            boundary_data,
+            {}
+        )
+
+        valid = filter(
+            lambda item: start in item[1] and end in item[1] and item[1][start] > 0,
+            by_continent.items()
+        )
+
+        growth = dict(map(
+            lambda item: (
+                item[0],
+                round(((item[1][end] - item[1][start]) / item[1][start]) * 100, 2)
+            ),
+            valid
+        ))
+
+        return max(growth, key=growth.get) if growth else "Unknown"
