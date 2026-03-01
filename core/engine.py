@@ -96,9 +96,38 @@ class TransformationEngine:
         return results
     
     #output 1 and 2
+    def _top_n_countries(self, filtered_data: List[dict], n: int, ascending: bool) -> List[dict]:
+        if not filtered_data:
+            return []
+        sorted_data = sorted(filtered_data, key=lambda x: x["value"], reverse=not ascending)
+        return [{"country": r["country"], "gdp": r["value"]} for r in sorted_data[:n]]
     
-        def _top_n_countries(self, filtered_data: List[dict], n: int, ascending: bool) -> List[dict]:
-            if not filtered_data:
-                return []
-            sorted_data = sorted(filtered_data, key=lambda x: x["value"], reverse=not ascending)
-            return [{"country": r["country"], "gdp": r["value"]} for r in sorted_data[:n]]
+    
+    def _gdp_growth_rate(self, all_data: List[dict], region: str, date_range: list) -> dict:
+        start, end   = date_range
+        region_lower = region.strip().lower()
+
+        if '&' in region_lower:
+            regions = [r.strip() for r in region_lower.split('&')]
+        elif ',' in region_lower:
+            regions = [r.strip() for r in region_lower.split(',')]
+        else:
+            regions = [region_lower]
+
+        region_data = [
+            r for r in all_data
+            if r["continent"].strip().lower() in regions
+            and r["year"] in [start, end]
+        ]
+
+        by_country = {}
+        for r in region_data:
+            by_country.setdefault(r["country"], {})[r["year"]] = r["value"]
+
+        growth = {}
+        for country, years in by_country.items():
+            if start in years and end in years and years[start] > 0:
+                rate = ((years[end] - years[start]) / years[start]) * 100
+                growth[country] = round(rate, 2)
+
+        return growth
