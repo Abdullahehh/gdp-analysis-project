@@ -131,3 +131,19 @@ class TransformationEngine:
                 growth[country] = round(rate, 2)
 
         return growth
+    
+    def _avg_gdp_by_continent(self, all_data: List[dict], date_range: list) -> dict:
+        start, end = date_range
+        in_range   = [r for r in all_data if start <= r["year"] <= end]
+
+        if not in_range:
+            return {}
+
+        by_continent = {}
+        for r in in_range:
+            by_continent.setdefault(r["continent"], []).append(r["value"])
+
+        return {
+            cont: round(sum(vals) / len(vals), 2)
+            for cont, vals in by_continent.items()
+        }
