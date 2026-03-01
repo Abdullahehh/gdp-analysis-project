@@ -42,10 +42,12 @@ class CSVReader:
         if missing:
             raise ValueError(f"Missing required columns: {', '.join(missing)}")
         
+        
         return True
     
-    class JSONReader:
-     """JSON file reader implementation"""
+
+class JSONReader:
+    """JSON file reader implementation"""
     
     def __init__(self, file_path: str):
         self.file_path = file_path
@@ -71,7 +73,7 @@ class CSVReader:
             if not data:
                 raise ValueError("JSON file is empty")
             
-            print(f"✓ Loaded {len(data)} records from JSON")
+            print(f" Loaded {len(data)} records from JSON")
             return data
         
         except json.JSONDecodeError as e:
@@ -94,8 +96,9 @@ class CSVReader:
         
         return True
     
-    class ExcelReader:
-     """Excel file reader implementation"""
+    
+class ExcelReader:
+    """Excel file reader implementation"""
     
     def __init__(self, file_path: str):
         self.file_path = file_path
@@ -114,7 +117,7 @@ class CSVReader:
             if not data:
                 raise ValueError("Excel file is empty")
             
-            print(f"✓ Loaded {len(data)} records from Excel")
+            print(f" Loaded {len(data)} records from Excel")
             return data
         
         except ImportError:
@@ -136,3 +139,17 @@ class CSVReader:
             raise ValueError(f"Missing required columns: {', '.join(missing)}")
         
         return True
+        
+    
+def create_reader(file_path: str):
+    """function to create appropriate reader based on file extension"""
+    extension = os.path.splitext(file_path)[1].lower()
+    
+    if extension == '.csv':
+        return CSVReader(file_path)
+    elif extension == '.json':
+        return JSONReader(file_path)
+    elif extension in ['.xlsx', '.xls']:
+        return ExcelReader(file_path)
+    else:
+        raise ValueError(f"Unsupported file type: {extension}")
