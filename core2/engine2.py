@@ -91,3 +91,7 @@ def compute_running_average(window: deque, new_value: float) -> float:
     total = sum(window) + new_value
     count = len(window) + 1
     return round(total / count, 6)
+
+
+
+class CoreWorker:
