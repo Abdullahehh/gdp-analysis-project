@@ -82,3 +82,12 @@ def generate_signature(
     if algorithm == "pbkdf2_hmac":
         return hashlib.pbkdf2_hmac("sha256", message, salt, iterations).hex()
     return hashlib.sha256(message + salt).hexdigest()
+
+
+def compute_running_average(window: deque, new_value: float) -> float:
+   
+    if not window and new_value == 0.0:
+        return 0.0
+    total = sum(window) + new_value
+    count = len(window) + 1
+    return round(total / count, 6)
