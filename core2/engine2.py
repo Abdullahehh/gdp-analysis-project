@@ -95,3 +95,22 @@ def compute_running_average(window: deque, new_value: float) -> float:
 
 
 class CoreWorker:
+    
+    def __init__(
+        self,
+        worker_id:      int,
+        raw_queue:      multiprocessing.Queue,
+        verified_queue: multiprocessing.Queue,
+        processing_cfg: Dict[str, Any],
+        stats_queue:    multiprocessing.Queue,
+    ):
+        self.worker_id      = worker_id
+        self.raw_queue      = raw_queue
+        self.verified_queue = verified_queue
+        self.processing_cfg = processing_cfg
+        self.stats_queue    = stats_queue
+
+        st = processing_cfg.get("stateless_tasks", {})
+        self.secret_key  = st.get("secret_key",  "default_key")
+        self.algorithm   = st.get("algorithm",   "pbkdf2_hmac")
+        self.iterations  = int(st.get("iterations", 100_000))
